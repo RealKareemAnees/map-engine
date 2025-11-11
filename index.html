@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>2D Grid Shape Selector</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .app-container {
+                background: white;
+                border-radius: 12px;
+                padding: 30px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                max-width: 1200px;
+                width: 100%;
+            }
+
+            h1 {
+                color: #333;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .controls {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            label {
+                font-weight: 600;
+                color: #555;
+            }
+
+            input[type="number"] {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                width: 100px;
+                font-size: 14px;
+                transition: border-color 0.3s;
+            }
+
+            input[type="number"]:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+
+            button {
+                padding: 8px 16px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+            button:hover {
+                background: #5568d3;
+            }
+
+            button:active {
+                transform: scale(0.98);
+            }
+
+            .canvas-wrapper {
+                position: relative;
+                display: inline-block;
+                margin: 20px 0;
+            }
+
+            /* Y-axis labels (left side) */
+            .y-axis {
+                position: absolute;
+                left: -40px;
+                top: 0;
+                bottom: 30px;
+                display: flex;
+                flex-direction: column-reverse;
+                justify-content: space-between;
+                align-items: flex-end;
+                font-size: 12px;
+                color: #666;
+            }
+
+            /* X-axis labels (bottom side) */
+            .x-axis {
+                position: absolute;
+                bottom: -30px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+                color: #666;
+            }
+
+            canvas {
+                border: 2px solid #333;
+                cursor: crosshair;
+                display: block;
+                background: #fafafa;
+            }
+
+            .info-panel {
+                background: #f5f5f5;
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 20px;
+            }
+
+            .mouse-position {
+                font-size: 16px;
+                color: #333;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .instructions {
+                color: #666;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .instructions ul {
+                margin-left: 20px;
+                margin-top: 8px;
+            }
+
+            .instructions li {
+                margin: 4px 0;
+            }
+
+            .stats {
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 2px solid #ddd;
+                display: flex;
+                gap: 30px;
+                flex-wrap: wrap;
+            }
+
+            .stat-item {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .stat-label {
+                font-size: 12px;
+                color: #888;
+                text-transform: uppercase;
+            }
+
+            .stat-value {
+                font-size: 20px;
+                font-weight: 700;
+                color: #667eea;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <h1>2D Grid Shape Selector</h1>
+
+            <!-- Control inputs for grid dimensions -->
+            <div class="controls">
+                <div class="control-group">
+                    <label for="width">Width:</label>
+                    <input
+                        type="number"
+                        id="width"
+                        value="600"
+                        min="200"
+                        max="1000"
+                    />
+                </div>
+                <div class="control-group">
+                    <label for="height">Height:</label>
+                    <input
+                        type="number"
+                        id="height"
+                        value="400"
+                        min="200"
+                        max="800"
+                    />
+                </div>
+                <div class="control-group">
+                    <label for="gridSize">Grid Size:</label>
+                    <input
+                        type="number"
+                        id="gridSize"
+                        value="50"
+                        min="10"
+                        max="100"
+                    />
+                </div>
+                <button id="applyBtn">Apply Dimensions</button>
+                <button id="clearBtn">Clear Shape</button>
+                <button id="generateDataBtn">Generate Test Data</button>
+            </div>
+
+            <!-- Canvas container with axes -->
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <div class="y-axis" id="yAxis"></div>
+                <canvas id="canvas"></canvas>
+                <div class="x-axis" id="xAxis"></div>
+            </div>
+
+            <!-- Information panel -->
+            <div class="info-panel">
+                <div class="mouse-position" id="mousePosition">
+                    Mouse Position: X: 0, Y: 0
+                </div>
+
+                <div class="instructions">
+                    <strong>Instructions:</strong>
+                    <ul>
+                        <li>Click anywhere on the grid to place a point</li>
+                        <li>
+                            Continue clicking to create lines between points
+                        </li>
+                        <li>Click near the first point to close the shape</li>
+                        <li>
+                            Generate test data to see which points fall inside
+                            your shape
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Points Placed</span>
+                        <span class="stat-value" id="pointsCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Shape Closed</span>
+                        <span class="stat-value" id="shapeClosed">No</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Points Inside</span>
+                        <span class="stat-value" id="pointsInside">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Points Outside</span>
+                        <span class="stat-value" id="pointsOutside">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="./script.js"></script>
+    </body>
+</html>
